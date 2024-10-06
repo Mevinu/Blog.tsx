@@ -1,0 +1,29 @@
+{% extends 'subBase.html' %}
+{% block subBody %}
+<sectoin class="hero-section flex-container centerd-flex">
+    <h1>All Blogs</h1>
+</sectoin>
+<section class="content flex-container centerd-flex">
+    <div class="container flex-container">
+        <div class="card-container flex-container column-flex blog-container">
+            {% if blogs %}
+            {% for blog in blogs%}
+            <div class="blog-card flex-container column-flex">
+                <h2 class="blog-title">{{blog.title}}</h2>
+                <p class="blog-author">{{ blog.author.user.userName }}</p>
+                <p class="blog-date">{{blog.date.strftime('%B %d, %Y')}}</p>
+                <p class="blog-summary">{{ blog.summary }}</p>
+                <a href="{{url_for('blogPost', blog_id=blog.id)}}" class="link bold">Read More</a>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p>No Posts Yet</p>
+            {% endif %}
+        
+        </div>
+        
+    </div>
+</section>
+
+
+{% endblock %}

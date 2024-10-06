@@ -1,0 +1,202 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kalnia:wght@100..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    color: black;
+}
+h1, h2{
+    font-family: "Kalnia", serif;
+    font-weight: 400;
+}
+h1{
+    font-size: 40px;
+}
+h2{
+    font-size: 23px;
+}
+p, .link, .button{
+    font-family: 'Poppins', serif;
+    font-weight: 300;
+    font-size: 15px;
+
+}
+.bold, span{
+    font-weight: 500;
+}
+.flex-container{
+    display: flex;
+}
+.centerd-flex{
+    justify-content: center;
+    align-items: center;
+}
+.column-flex{
+    flex-direction: column;
+}
+.hero-section{
+    min-height: 50vh;
+    width: 100vw;
+    height: max-content;
+    padding: 50px;
+}
+.section-title{
+    min-width:120px;
+    height:max-content;
+    padding-right: 10px;
+
+}
+section{
+    padding-left: 100px;
+    padding-right: 100px;
+    padding-top: 100px;
+}
+.blog-container{
+    border-left:solid 1px;
+    gap: 50px;
+    padding-left: 40px;
+}
+.card-container{
+    height: max-content;
+
+}
+.blog-card{
+    position: relative;
+    height: max-content;
+
+}
+.blog-title{
+    position: relative;
+    margin-bottom: 5px;
+}
+.blog-date{
+    position: relative;
+    margin-bottom: 30px;
+}
+.blog-author{
+position: relative;
+margin-bottom: 5px;
+}
+.blog-summary{
+    position: relative;
+    margin-bottom:20px;
+}
+.grid-container{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    
+}
+.article-card{
+    border-bottom: solid 1px;
+    position: relative;
+    width: 100%;
+
+    height: max-content;
+}
+nav{
+    position: absolute;
+    padding-left:100px;
+    padding-top: 50px;
+    z-index: 10;
+    width:100%;
+    height: max-content;
+}
+footer{
+    padding: 50px;
+    gap: 20px;
+    color: gray;
+}
+.socials{
+    font-size: 20px;
+    gap: 10px;
+}
+.article-img{
+    width: 100%;
+    background-color: rgb(202, 202, 202);
+    aspect-ratio: 2/1;
+    position: relative;
+    margin-bottom: 10px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.article-link{
+    margin-bottom: 30px;
+}
+.big{
+    font-size: 30px;
+}
+.blog-image img{
+    width: 100%;
+    height: auto;
+}
+.flex-gap30{
+    gap: 30px;
+}
+.link{
+    border-bottom: solid 1px transparent;
+    width: max-content;
+}
+.link:hover{
+    border-bottom: solid 1px;
+}
+.back-btn i{
+    font-size: 20px;
+    color: rgb(112, 112, 112);
+}
+.back-btn:hover i{
+    color: black;
+}
+.button{
+    background-color: white;
+    padding: 10px;
+    border: solid 1px ;
+    width: max-content;
+}
+.button:hover{
+background-color: black;
+color:white;
+}
+.container{
+    justify-content: start;
+    max-width: 1500px;
+ 
+    width: 100%;
+}
+
+
+@media only screen and (max-width:1000px) {
+    .grid-container{
+        grid-template-columns: 1fr;
+    }
+    .section-title{
+        margin-bottom: 30px;
+    }
+}
+@media only screen and (max-width:750px) {
+    .container{
+        flex-direction: column;
+    }
+    nav, section{
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .hero-section{
+        min-height: 20vh;
+    }
+}
+@media only screen and (max-width:650px) {
+    p, .link, .button{
+        font-size: 14px;
+    }
+    h1{
+        font-size: 35px;
+    }
+    h2{
+        font-size: 20px;
+    }
+}

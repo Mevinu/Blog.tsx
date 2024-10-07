@@ -7,6 +7,7 @@ import "./styles/style.css";
 import { BlogsPage } from "./pages/BlogsPage.tsx";
 import { ArticlesPage } from "./pages/ArticlesPage.tsx";
 import { Post } from "./pages/Post.tsx";
+import { EditPage } from "./pages/EditPage.tsx";
 
 const router = createBrowserRouter([
   {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
   {
     path: "/Article/:id",
     element: <Post blog={false} />,
+  },
+  {
+    path: "/Edit",
+    element: <EditPage />,
   },
 ]);
 

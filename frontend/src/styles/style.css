@@ -167,8 +167,81 @@ color:white;
  
     width: 100%;
 }
+.admin-container{
+    padding: 20px;
+    display: flex;
+    min-height: 100vh;
+    height: max-content;
+}
+.side-bar{
+    gap: 10px;
+    height: max-content;
+    min-height: 100%;
+    width: 300px;
+}
+.button-1{
+    background-color: transparent;
+    border: none;
+    font-size: 15px;
+    padding: 5px;
+    cursor: pointer;
 
-
+}
+.button-1:hover{
+    color: red;
+}
+.hidden-input{
+    display: none;
+}
+.sidebar-footer{
+    flex-grow: 2;
+    justify-content: end;
+}
+.side-bar input[type="text"], .side-bar textarea{
+    outline: none;
+    resize: none;
+    border:solid 1px black;
+    font-size: 15px;
+    padding: 5px;
+}
+.side-bar textarea{
+    height: 10%;
+}
+.admin-button{
+    width: 100%;
+}
+.side-bar input[type="file"]{
+    display: none;
+}
+.sidebar-image{
+    width: 100%;
+    aspect-ratio: 1/1;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.editor-homebtn{
+    width: fit-content;
+}
+.text-editor{
+    background-color: white;
+    border: solid 1px black;
+    z-index: 2;
+    position: relative;
+    width: 100%;
+    height: max-content;
+}
+.editor-section{
+    background-color: white;
+    color: #000;
+    width: 100%;
+    min-height: 90vh;
+    max-height: 90vh;
+    overflow-y:scroll ;
+    border: solid 1px red;
+    font-size: 20px;
+    position: relative;
+}
 @media only screen and (max-width:1000px) {
     .grid-container{
         grid-template-columns: 1fr;

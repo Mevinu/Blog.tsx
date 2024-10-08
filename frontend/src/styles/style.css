@@ -18,7 +18,7 @@ h1{
 h2{
     font-size: 23px;
 }
-p, .link, .button{
+p, .link, .button, ol li{
     font-family: 'Poppins', serif;
     font-weight: 300;
     font-size: 15px;
@@ -27,6 +27,13 @@ p, .link, .button{
 .bold, span{
     font-weight: 500;
 }
+strong{
+    font-weight: 600;
+}
+u{
+    text-decoration: underline;
+}
+
 .flex-container{
     display: flex;
 }
@@ -172,11 +179,11 @@ color:white;
     display: flex;
     min-height: 100vh;
     height: max-content;
+
 }
 .side-bar{
     gap: 10px;
     height: max-content;
-    min-height: 100%;
     width: 300px;
 }
 .button-1{
@@ -205,7 +212,7 @@ color:white;
     padding: 5px;
 }
 .side-bar textarea{
-    height: 10%;
+    height: 100px;
 }
 .admin-button{
     width: 100%;
@@ -215,7 +222,7 @@ color:white;
 }
 .sidebar-image{
     width: 100%;
-    aspect-ratio: 1/1;
+    aspect-ratio: 2/1;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -242,6 +249,41 @@ color:white;
     font-size: 20px;
     position: relative;
 }
+
+.overlay{
+    position:  fixed;
+    right: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 3;
+    background-color: rgb(0, 0, 0);
+    opacity: 0.5;
+}
+.message-box{
+    background-color: white;
+    z-index: 4;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px;
+    gap:40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: solid 1px black;
+}
+.message-box button{
+    background-color: white;
+    border:none; 
+    font-size: 14px;    
+}
+.message-box button:hover{
+    color:red;
+}
+
+
 @media only screen and (max-width:1000px) {
     .grid-container{
         grid-template-columns: 1fr;
@@ -263,7 +305,7 @@ color:white;
     }
 }
 @media only screen and (max-width:650px) {
-    p, .link, .button{
+    p, .link, .button, ol li{
         font-size: 14px;
     }
     h1{

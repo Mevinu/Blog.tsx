@@ -1,19 +1,37 @@
-import { Editor } from "../components/Editor";
-import { SideBar } from "../components/SideBar";
+import { useState } from "react";
+import { EditorPage } from "../components/EditorPage";
+import DOMPurify from "dompurify";
+import { Values } from "../components/EditorPage";
 
-export function EditPage() {
+interface Props {
+  article: boolean;
+}
+
+export function EditPage({ article }: Props) {
+  const [values, setValues] = useState<Values>();
+
   return (
-    <section className="admin-container flex-container flex-gap30">
-      <SideBar
-        onSubmit={console.log}
+    <section className="admin-container">
+      <EditorPage
+        onSubmit={(content) => {
+          setValues({
+            title: DOMPurify.sanitize(content.title ?? ""),
+            summary: DOMPurify.sanitize(content.summary ?? ""),
+            content: DOMPurify.sanitize(content.content ?? ""),
+            image: content.image ?? undefined,
+            imageUrl: content.imageUrl
+              ? DOMPurify.sanitize(content.imageUrl)
+              : ".",
+          });
+        }}
         preDefValues={{
-          title: "test",
-          summary: "test",
+          title: "Test",
+          content: "Test",
+          summary: "",
           imageUrl: "./src/assets/react.svg",
         }}
-        article={true}
-      />
-      <Editor onChange={console.log}></Editor>
+        article={article}
+      ></EditorPage>
     </section>
   );
 }

@@ -9,12 +9,12 @@ interface Props {
 export function Editor({ onChange }: Props) {
   const modules = {
     toolbar: [
-      ["bold", "italic", "underline", "strike"],
+      ["bold", "italic", "underline"],
 
       [{ list: "ordered" }, { list: "bullet" }],
       [{ indent: "-1" }, { indent: "+1" }],
 
-      ["link", "image"],
+      ["link"],
     ],
   };
 
@@ -23,10 +23,6 @@ export function Editor({ onChange }: Props) {
   React.useEffect(() => {
     if (quill) {
       quill.on("text-change", () => {
-        //console.log(quill.getText()); // Get text only
-        //console.log(quill.getContents()); // Get delta contents
-        //console.log(quill.root.innerHTML); // Get innerHTML using quill
-        //console.log(quillRef.current.firstChild.innerHTML); // Get innerHTML using quillRef
         onChange(quill.root.innerHTML);
       });
     }

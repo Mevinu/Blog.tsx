@@ -31,8 +31,12 @@ const router = createBrowserRouter([
     element: <Post blog={false} />,
   },
   {
-    path: "/Edit",
-    element: <EditPage />,
+    path: "/Edit/Blog",
+    element: <EditPage article={false} />,
+  },
+  {
+    path: "/Edit/Article",
+    element: <EditPage article={true} />,
   },
 ]);
 

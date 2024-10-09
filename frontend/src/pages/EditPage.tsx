@@ -53,13 +53,14 @@ export function EditPage({ article, edit }: Props) {
       content.summary.trim() != "" &&
       blogContent.replace(/<[^>]+>/g, "").trim() != ""
     ) {
-      setValues({
+      const data = {
         title: DOMPurify.sanitize(content.title ?? ""),
         summary: DOMPurify.sanitize(content.summary ?? ""),
         content: DOMPurify.sanitize(blogContent ?? ""),
         image: content.image ?? undefined,
         imageUrl: content.imageUrl ? DOMPurify.sanitize(content.imageUrl) : ".",
-      });
+      };
+      console.log(data);
     } else {
       setError(2);
     }
@@ -84,7 +85,7 @@ export function EditPage({ article, edit }: Props) {
       ) : null}
       {error == 2 ? (
         <ErrorBox
-          message="Please fill all the details"
+          message="Please fill all the fields"
           buttonMessage="Close"
           onClick={() => {
             setError(0);

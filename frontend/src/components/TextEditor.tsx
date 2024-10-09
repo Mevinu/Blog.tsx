@@ -29,12 +29,9 @@ export function TextEditor({ onChange, content }: Props) {
       quill.on("text-change", () => {
         onChange(quill.root.innerHTML);
       });
-    }
-  }, [quill]);
-
-  React.useEffect(() => {
-    if (quill && content) {
-      quill.root.innerHTML = content;
+      if (content) {
+        quill.clipboard.dangerouslyPasteHTML(content);
+      }
     }
   }, [quill]);
 

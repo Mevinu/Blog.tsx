@@ -38,6 +38,14 @@ const router = createBrowserRouter([
     path: "/Edit/Article/:id",
     element: <EditPage article={true} edit={true} />,
   },
+  {
+    path: "Add/Blog",
+    element: <EditPage article={false} edit={false}></EditPage>,
+  },
+  {
+    path: "Add/Article",
+    element: <EditPage article={true} edit={false}></EditPage>,
+  },
 ]);
 
 createRoot(document.getElementById("root")!).render(

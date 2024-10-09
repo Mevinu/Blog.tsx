@@ -7,7 +7,7 @@ interface Props {
   content?: string;
 }
 
-export function Editor({ onChange, content }: Props) {
+export function TextEditor({ onChange, content }: Props) {
   const modules = {
     toolbar: [
       ["bold", "italic", "underline"],
@@ -29,8 +29,12 @@ export function Editor({ onChange, content }: Props) {
       quill.on("text-change", () => {
         onChange(quill.root.innerHTML);
       });
+    }
+  }, [quill]);
 
-      quill.clipboard.dangerouslyPasteHTML(content ?? "");
+  React.useEffect(() => {
+    if (quill && content) {
+      quill.root.innerHTML = content;
     }
   }, [quill]);
 

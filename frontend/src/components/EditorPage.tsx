@@ -124,6 +124,7 @@ export function EditorPage({ preDefValues, article, onSubmit }: Props) {
         onChange={(content) => {
           setValues((prevValues) => ({ ...prevValues, content: content }));
         }}
+        content={values.content}
       ></Editor>
       {error && (
         <ErrorBox

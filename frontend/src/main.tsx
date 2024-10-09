@@ -31,12 +31,12 @@ const router = createBrowserRouter([
     element: <Post blog={false} />,
   },
   {
-    path: "/Edit/Blog",
-    element: <EditPage article={false} />,
+    path: "/Edit/Blog/:id",
+    element: <EditPage article={false} edit={true} />,
   },
   {
-    path: "/Edit/Article",
-    element: <EditPage article={true} />,
+    path: "/Edit/Article/:id",
+    element: <EditPage article={true} edit={true} />,
   },
 ]);
 

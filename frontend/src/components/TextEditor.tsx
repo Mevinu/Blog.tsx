@@ -4,9 +4,10 @@ import React from "react";
 
 interface Props {
   onChange: (content: string) => void;
+  content?: string;
 }
 
-export function Editor({ onChange }: Props) {
+export function Editor({ onChange, content }: Props) {
   const modules = {
     toolbar: [
       ["bold", "italic", "underline"],
@@ -18,13 +19,18 @@ export function Editor({ onChange }: Props) {
     ],
   };
 
-  const { quill, quillRef } = useQuill({ modules: modules });
+  const { quill, quillRef } = useQuill({
+    modules: modules,
+    placeholder: "Enter Text",
+  });
 
   React.useEffect(() => {
     if (quill) {
       quill.on("text-change", () => {
         onChange(quill.root.innerHTML);
       });
+
+      quill.clipboard.dangerouslyPasteHTML(content ?? "");
     }
   }, [quill]);
 

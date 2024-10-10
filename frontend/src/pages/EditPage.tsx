@@ -4,7 +4,7 @@ import DOMPurify from "dompurify";
 import { Values } from "../components/SideBar";
 import { useParams } from "react-router-dom";
 import { TextEditor } from "../components/TextEditor";
-import { ErrorBox } from "../components/ErrorBox";
+import { MessageBox } from "../components/MessageBox";
 
 interface Props {
   article: boolean;
@@ -19,6 +19,8 @@ export function EditPage({ article, edit }: Props) {
   const [blogContent, setBlogContent] = useState("");
   const [loadingContent, setLoadingContent] = useState(false);
 
+  const [message, setMessage] = useState("");
+
   useEffect(() => {
     if (edit) {
       fetchData();
@@ -31,8 +33,8 @@ export function EditPage({ article, edit }: Props) {
     try {
       const response = await fetch(
         article
-          ? "http://127.0.0.1:5000/blog/" + postID
-          : "http://127.0.0.1:5000/article/" + postID
+          ? "http://127.0.0.1:5000/article/" + postID
+          : "http://127.0.0.1:5000/blog/" + postID
       );
       const data = await response.json();
       if (data == 0) {
@@ -47,21 +49,57 @@ export function EditPage({ article, edit }: Props) {
     }
   };
 
+  const sendData = async (data: FormData) => {
+    try {
+      const response = await fetch(
+        article
+          ? "http://127.0.0.1:5000/addarticle"
+          : "http://127.0.0.1:5000/addblog",
+        {
+          method: "POST",
+
+          body: data,
+        }
+      );
+      const result = await response.json();
+      if (result == 1) {
+        setMessage("Post Created");
+        setError(2);
+      } else if (result == 3) {
+        setMessage("Image type is invalied");
+        setError(2);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleSubmit = (content: Values) => {
     if (
       content.title.trim() != "" &&
       content.summary.trim() != "" &&
       blogContent.replace(/<[^>]+>/g, "").trim() != ""
     ) {
-      const data = {
+      const formData = new FormData();
+
+      const jsonData: Values = {
         title: DOMPurify.sanitize(content.title ?? ""),
         summary: DOMPurify.sanitize(content.summary ?? ""),
         content: DOMPurify.sanitize(blogContent ?? ""),
-        image: content.image ?? undefined,
-        imageUrl: content.imageUrl ? DOMPurify.sanitize(content.imageUrl) : ".",
+        author: 1,
       };
-      console.log(data);
+      if (content.imageUrl) {
+        jsonData.imageUrl = DOMPurify.sanitize(content.imageUrl);
+      }
+
+      formData.append("json", JSON.stringify(jsonData));
+      if (content.image) {
+        formData.append("image", content.image);
+      }
+
+      sendData(formData);
     } else {
+      setMessage("Please fill all the fields");
       setError(2);
     }
   };
@@ -84,13 +122,13 @@ export function EditPage({ article, edit }: Props) {
         ></TextEditor>
       ) : null}
       {error == 2 ? (
-        <ErrorBox
-          message="Please fill all the fields"
+        <MessageBox
+          message={message}
           buttonMessage="Close"
           onClick={() => {
             setError(0);
           }}
-        ></ErrorBox>
+        ></MessageBox>
       ) : null}
     </section>
   );

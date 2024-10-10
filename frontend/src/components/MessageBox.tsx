@@ -4,7 +4,7 @@ interface Props {
   onClick: () => void;
 }
 
-export function ErrorBox({ buttonMessage, message, onClick }: Props) {
+export function MessageBox({ buttonMessage, message, onClick }: Props) {
   return (
     <>
       <div className="overlay"></div>

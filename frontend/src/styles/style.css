@@ -18,7 +18,7 @@ h1{
 h2{
     font-size: 23px;
 }
-p, .link, .button, ol li{
+p, .link, .button, ol li, a{
     font-family: 'Poppins', serif;
     font-weight: 300;
     font-size: 15px;
@@ -144,11 +144,13 @@ footer{
 .flex-gap30{
     gap: 30px;
 }
-.link{
+.link, a{
     border-bottom: solid 1px transparent;
     width: max-content;
+    font-weight: 400;
 }
-.link:hover{
+.link:hover, a:hover
+{
     border-bottom: solid 1px;
 }
 .back-btn i{

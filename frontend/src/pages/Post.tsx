@@ -2,6 +2,8 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Blogs } from "./Home";
 import { HomeNav } from "../components/HomeNav";
+import { format } from "date-fns";
+import "quill/dist/quill.core.css";
 
 interface Props {
   blog: boolean;
@@ -35,11 +37,14 @@ export function Post({ blog }: Props) {
           <section className="hero-section flex-container centerd-flex column-flex">
             <h1>{post.title}</h1>
             <p>{post.author.userName}</p>
-            <p>{post.date}</p>
+            <p>{format(post.date, "MMMM do, yyyy")}</p>
           </section>
           <section className="content flex-container centerd-flex">
             <div className="container flex-container column-flex flex-gap30">
-              <p>{post.content}</p>
+              <p
+                dangerouslySetInnerHTML={{ __html: post.content }}
+                className="ql-editor"
+              />
             </div>
           </section>
         </>
@@ -48,7 +53,6 @@ export function Post({ blog }: Props) {
           <h1>Invalid Post Number</h1>
         </section>
       )}
-      ;
     </>
   );
 }

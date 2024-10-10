@@ -1,8 +1,10 @@
-from flask import Flask, url_for, render_template, redirect, send_from_directory, jsonify
+from flask import Flask, request, send_from_directory, jsonify, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_cors import CORS #type:ignore
-
+from werkzeug.utils import secure_filename
+import os
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -61,6 +63,10 @@ class Authors(db.Model):
         return {"authorID":self.authorID, "userID":self.userID, "userName": self.user.userName}
 
 
+@app.route("/uploads/<filename>")
+def uploads(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 
 @app.route("/")
 def index():
@@ -78,32 +84,64 @@ def index():
 def blogPost(blog_id):
     try:
         blog = Blogs.query.get(blog_id)
-        return jsonify(blog.to_dict())
+        return jsonify(blog.to_dict()),200
     except:
-        return jsonify(0)
+        return jsonify(0),404
 @app.route("/allblogs")
 def allBlogs():
     blogs = Blogs.query.order_by(Blogs.date.desc()).all()
-    return jsonify([blog.to_dict() for blog in blogs])
+    return jsonify([blog.to_dict() for blog in blogs]), 200
 
 @app.route("/article/<int:article_id>")
 def articlePost(article_id):
     try:
         article = Articles.query.get(article_id)
-        return jsonify(article.to_dict())
+        return jsonify(article.to_dict()), 200
     except:
-        return jsonify(0)
+        return jsonify(0), 400
 @app.route("/allarticles")
 def allArticles():
     articles = Articles.query.order_by(Articles.date.desc()).all()
     return jsonify([article.to_dict() for article in articles])
 
 
+@app.route("/addblog", methods=["POST"])
+def addBlog():
+    data = json.loads(request.form.get('json'))
+    blog = Blogs(title=data["title"], summary=data["summary"], content=data["content"], authorID = data["author"], date=datetime.today())
+    db.session.add(blog)
+    db.session.commit()
+
+    return jsonify(1), 200
 
 
-@app.route("/uploads/<filename>")
-def uploads(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+
+@app.route("/addarticle", methods=["POST"])
+def addArticle():
+    data = json.loads(request.form.get('json'))
+    image = request.files.get("image")
+    filename = None
+    if image and allowed_file(image.filename):
+        filename = secure_filename(image.filename)
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        article = Articles(title=data["title"], summary=data["summary"], content=data["content"], authorID = data["author"], date=datetime.today(), image=url_for('uploads', filename=filename))
+        db.session.add(article)
+        db.session.commit()
+        return jsonify(1), 200
+    else:
+        return jsonify(3), 200
+    
+
+
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

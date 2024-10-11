@@ -13,13 +13,28 @@ interface Props {
 
 export function EditPage({ article, edit }: Props) {
   const [values, setValues] = useState<Values | null>(null);
-  const [error, setError] = useState(0);
   const { id } = useParams<{ id: string }>();
   const postID = id ? parseInt(id, 10) : null;
   const [blogContent, setBlogContent] = useState("");
   const [loadingContent, setLoadingContent] = useState(false);
 
   const [message, setMessage] = useState("");
+
+  //error codes
+  //1 = fetching error
+  //2 = post created
+  //3 = post updates
+  //4 = image type invalied
+  //5 = title empty
+  //6 = summary empty
+  //7 = content empty
+  const [fetchError, setFetchError] = useState(false);
+  const [postSucc, setPostSucc] = useState(false);
+  const [postUpt, setPostUpt] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [titleError, setTitleError] = useState(false);
+  const [summaryError, setSummaryError] = useState(false);
+  const [contentError, setContentError] = useState(false);
 
   useEffect(() => {
     if (edit) {
@@ -38,36 +53,44 @@ export function EditPage({ article, edit }: Props) {
       );
       const data = await response.json();
       if (data == 0) {
-        setError(1);
+        setFetchError(true);
       } else {
         setValues(data);
         setLoadingContent(true);
-        setError(0);
+        setFetchError(false);
       }
     } catch (err) {
-      setError(1);
+      setFetchError(true);
     }
   };
 
   const sendData = async (data: FormData) => {
     try {
-      const response = await fetch(
-        article
+      var url = "";
+      if (edit) {
+        url = article
+          ? "http://127.0.0.1:5000/editarticle?postid=" + postID
+          : "http://127.0.0.1:5000/editblog?postid=" + postID;
+      } else {
+        url = article
           ? "http://127.0.0.1:5000/addarticle"
-          : "http://127.0.0.1:5000/addblog",
-        {
-          method: "POST",
+          : "http://127.0.0.1:5000/addblog";
+      }
+      const response = await fetch(url, {
+        method: "POST",
 
-          body: data,
-        }
-      );
+        body: data,
+      });
       const result = await response.json();
-      if (result == 1) {
+      if (result == 1 && edit == false) {
         setMessage("Post Created");
-        setError(2);
+        setPostSucc(true);
+      } else if (result == 1 && edit) {
+        setMessage("Post Updated");
+        setPostUpt(false);
       } else if (result == 3) {
         setMessage("Image type is invalied");
-        setError(2);
+        setImageError(true);
       }
     } catch (error) {
       console.log(error);
@@ -88,8 +111,8 @@ export function EditPage({ article, edit }: Props) {
         content: DOMPurify.sanitize(blogContent ?? ""),
         author: 1,
       };
-      if (content.imageUrl) {
-        jsonData.imageUrl = DOMPurify.sanitize(content.imageUrl);
+      if (content.imageURL) {
+        jsonData.imageURL = DOMPurify.sanitize(content.imageURL);
       }
 
       formData.append("json", JSON.stringify(jsonData));
@@ -99,34 +122,52 @@ export function EditPage({ article, edit }: Props) {
 
       sendData(formData);
     } else {
-      setMessage("Please fill all the fields");
-      setError(2);
+      if (content.title.trim() == "") {
+        setTitleError(true);
+      } else {
+        setTitleError(false);
+      }
+      if (content.summary.trim() == "") {
+        setSummaryError(true);
+      } else {
+        setSummaryError(false);
+      }
+      if (blogContent.replace(/<[^>]+>/g, "").trim() == "") {
+        setContentError(true);
+      } else {
+        setContentError(false);
+      }
     }
   };
 
-  if (error == 1) {
+  if (fetchError) {
     return <h1>Error fetching data</h1>;
   }
 
   return (
     <section className="admin-container flex-container flex-gap30">
       <SideBar
+        titleError={titleError}
+        summaryError={summaryError}
         onSubmit={handleSubmit}
         preDefValues={values ?? undefined}
         article={article}
       />
       {loadingContent ? (
         <TextEditor
+          warning={contentError}
           onChange={setBlogContent}
           content={values?.content}
         ></TextEditor>
       ) : null}
-      {error == 2 ? (
+      {postSucc || postUpt || imageError ? (
         <MessageBox
           message={message}
           buttonMessage="Close"
           onClick={() => {
-            setError(0);
+            setPostSucc(false);
+            setPostUpt(false);
+            setImageError(false);
           }}
         ></MessageBox>
       ) : null}

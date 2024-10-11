@@ -5,6 +5,7 @@ from flask_cors import CORS #type:ignore
 from werkzeug.utils import secure_filename
 import os
 import json
+import bleach #type:ignore
 
 app = Flask(__name__)
 CORS(app)
@@ -43,13 +44,13 @@ class Articles(db.Model):
     summary = db.Column(db.String(1000))
     content = db.Column(db.Text)
     date = db.Column(db.DateTime)
-    image = db.Column(db.String(300))
+    imageURL = db.Column(db.String(300))
     authorID = db.Column(db.Integer, db.ForeignKey('Authors.authorID'), nullable=False)
     
 
 
     def to_dict(self):
-        return {"id": self.id, "title":self.title, "summary": self.summary, "content": self.content, "date": self.date, "author": self.author.to_dict(), "image": self.image}
+        return {"id": self.id, "title":self.title, "summary": self.summary, "content": self.content, "date": self.date, "author": self.author.to_dict(), "imageURL": self.imageURL}
 
 class Authors(db.Model):
     __tablename__ = "Authors"
@@ -68,10 +69,15 @@ def uploads(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
+
+def cleanContent(content):
+    sanitized_content = bleach.clean(content, tags=['p', 'ol', 'a', 'li', 'span', 'br', 'strong', 'em', 'u', ], attributes={'a': ['href', 'rel'], 'li':['data-list', 'class']})
+    return sanitized_content
+
 @app.route("/")
 def index():
-    blogs = Blogs.query.order_by(Blogs.date.desc()).all()
-    articles = Articles.query.order_by(Articles.date.desc()).all()
+    blogs = Blogs.query.order_by(Blogs.date.desc()).limit(2).all()
+    articles = Articles.query.order_by(Articles.date.desc()).limit(2).all()
     response_data = {
         "blogs":[blog.to_dict() for blog in blogs],
         "articles":[article.to_dict() for article in articles]
@@ -108,7 +114,7 @@ def allArticles():
 @app.route("/addblog", methods=["POST"])
 def addBlog():
     data = json.loads(request.form.get('json'))
-    blog = Blogs(title=data["title"], summary=data["summary"], content=data["content"], authorID = data["author"], date=datetime.today())
+    blog = Blogs(title=bleach.clean(data["title"]), summary=bleach.clean(data["summary"]), content=cleanContent(data["content"]), authorID = data["author"], date=datetime.today())
     db.session.add(blog)
     db.session.commit()
 
@@ -130,7 +136,7 @@ def addArticle():
     if image and allowed_file(image.filename):
         filename = secure_filename(image.filename)
         image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        article = Articles(title=data["title"], summary=data["summary"], content=data["content"], authorID = data["author"], date=datetime.today(), image=url_for('uploads', filename=filename))
+        article = Articles(title=bleach.clean(data["title"]), summary=bleach.clean(data["summary"]), content=cleanContent(data["content"]), authorID = data["author"], date=datetime.today(), imageURL=f"http://127.0.0.1:5000{url_for('uploads', filename=filename)}")
         db.session.add(article)
         db.session.commit()
         return jsonify(1), 200
@@ -138,10 +144,34 @@ def addArticle():
         return jsonify(3), 200
     
 
+@app.route("/editblog", methods=["POST"])
+def editBlog():
+    data = json.loads(request.form.get('json'))
+    blog = Blogs.query.get(request.args.get("postid"))
+    blog.title=bleach.clean(data["title"])
+    blog.summary= bleach.clean(data["summary"])
+    blog.content=cleanContent(data["content"])
+    blog.date=datetime.today()
+    db.session.commit()
+    return jsonify(1),200
 
-
-
-
+@app.route("/editarticle", methods=["POST"])
+def editArticle():
+    data = json.loads(request.form.get('json'))
+    image = request.files.get("image")
+    filename = None
+    if image and allowed_file(image.filename):
+        filename = secure_filename(image.filename)
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        article = Articles.query.get(request.args.get("postid"))
+        article.title=bleach.clean(data["title"])
+        article.summary= bleach.clean(data["summary"])
+        article.content=cleanContent(data["content"])
+        article.imageURL="http://127.0.0.1:5000"+url_for('uploads', filename=filename)
+        article.date=datetime.today()
+    
+        db.session.commit()
+    return jsonify(1),200
 
 if __name__ == "__main__":
     app.run(debug=True)

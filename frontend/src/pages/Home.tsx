@@ -23,7 +23,7 @@ export interface Articles {
   date: string;
   content: string;
   author: Author;
-  image: string;
+  imageURL: string;
 }
 
 interface Props {

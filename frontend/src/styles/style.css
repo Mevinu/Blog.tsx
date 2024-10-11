@@ -48,7 +48,7 @@ u{
     min-height: 50vh;
     width: 100vw;
     height: max-content;
-    padding: 50px;
+    padding: 100px 50px 50px 50px;
 }
 .section-title{
     min-width:120px;
@@ -157,7 +157,11 @@ footer{
     font-size: 20px;
     color: rgb(112, 112, 112);
 }
+.back-btn:hover{
+    border:none;
+}
 .back-btn:hover i{
+    border: none;
     color: black;
 }
 .button{
@@ -188,6 +192,7 @@ color:white;
     height: max-content;
     width: 300px;
 }
+
 .button-1{
     background-color: transparent;
     border: none;
@@ -235,10 +240,9 @@ color:white;
 .text-editor{
     background-color: white;
     border: solid 1px black;
-    z-index: 2;
+    z-index: 3;
     position: relative;
     width: 100%;
-    height: max-content;
 }
 .editor-section{
     background-color: white;
@@ -246,25 +250,35 @@ color:white;
     width: 100%;
     min-height: 90vh;
     max-height: 90vh;
+    z-index: 3;
     overflow-y:scroll ;
-    border: solid 1px red;
     font-size: 20px;
     position: relative;
 }
+.ql-toolbar, .ql-container{
+    border: none !important;
 
+}
+.ql-editing{
+    left: clamp(0px, 0px, 100px) !important;
+}
+.ql-action:hover{
+    border: none;
+    color: black;
+}
 .overlay{
     position:  fixed;
     right: 0;
     top: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 3;
+    z-index: 5;
     background-color: rgb(0, 0, 0);
     opacity: 0.5;
 }
 .message-box{
     background-color: white;
-    z-index: 4;
+    z-index: 6;
     position: fixed;
     top: 50%;
     left: 50%;
@@ -283,6 +297,10 @@ color:white;
 }
 .message-box button:hover{
     color:red;
+}
+.warning{
+    color: red;
+    font-size: 10px;
 }
 
 

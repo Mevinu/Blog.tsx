@@ -5,7 +5,7 @@ export interface Values {
   title: string;
   summary: string;
   image?: File;
-  imageUrl?: string;
+  imageURL?: string;
   content?: string;
   author?: number;
 }
@@ -13,10 +13,20 @@ export interface Values {
 interface Props {
   preDefValues?: Values;
   article?: boolean;
+
+  titleError?: boolean;
+  contentError?: boolean;
+  summaryError?: boolean;
   onSubmit: (values: Values) => void;
 }
 
-export function SideBar({ preDefValues, article, onSubmit }: Props) {
+export function SideBar({
+  preDefValues,
+  article,
+  onSubmit,
+  titleError,
+  summaryError,
+}: Props) {
   const [values, setValues] = useState<Values>(
     preDefValues ? preDefValues : { title: "", summary: "" }
   );
@@ -24,6 +34,7 @@ export function SideBar({ preDefValues, article, onSubmit }: Props) {
   useEffect(() => {
     if (preDefValues) {
       setValues(preDefValues);
+      console.log(preDefValues.imageURL);
     }
   }, [preDefValues]);
 
@@ -52,6 +63,7 @@ export function SideBar({ preDefValues, article, onSubmit }: Props) {
         placeholder="Enter Text"
         onChange={handleInput}
       />
+      {titleError && <p className="warning">Please fill the following field</p>}
       <p>Summary</p>
       <textarea
         name="summary"
@@ -59,6 +71,9 @@ export function SideBar({ preDefValues, article, onSubmit }: Props) {
         value={values.summary}
         onChange={handleInput}
       />
+      {summaryError && (
+        <p className="warning">Please fill the following field</p>
+      )}
       {article && (
         <>
           <label
@@ -77,24 +92,26 @@ export function SideBar({ preDefValues, article, onSubmit }: Props) {
                 const objectUrl = URL.createObjectURL(imgFile);
                 setValues((prevValues) => ({
                   ...prevValues,
-                  imageUrl: objectUrl,
+                  imageURL: objectUrl,
                   image: element.target.files?.[0],
                 }));
               }
             }}
           />
-          {values.imageUrl != "." && values.imageUrl ? (
+          {values.imageURL != "." && values.imageURL ? (
             <>
               <div
                 className="sidebar-image"
-                style={{ backgroundImage: `url(${values.imageUrl})` }}
+                style={{
+                  backgroundImage: `url(${values.imageURL})`,
+                }}
               />
               <button
                 className="button-1 admin-button"
                 onClick={() => {
                   setValues((prevValues) => ({
                     ...prevValues,
-                    imageUrl: ".",
+                    imageURL: ".",
                   }));
                 }}
               >

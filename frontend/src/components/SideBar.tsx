@@ -7,7 +7,7 @@ export interface Values {
   image?: File;
   imageURL?: string;
   content?: string;
-  author?: number;
+  author?: string;
 }
 
 interface Props {

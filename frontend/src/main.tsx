@@ -8,6 +8,9 @@ import { BlogsPage } from "./pages/BlogsPage.tsx";
 import { ArticlesPage } from "./pages/ArticlesPage.tsx";
 import { Post } from "./pages/Post.tsx";
 import { EditPage } from "./pages/EditPage.tsx";
+import { AdminPage } from "./pages/AdminPage.tsx";
+import Login from "./pages/Login.tsx";
+import { Test } from "./pages/Test.tsx";
 
 const router = createBrowserRouter([
   {
@@ -31,6 +34,11 @@ const router = createBrowserRouter([
     element: <Post blog={false} />,
   },
   {
+    path: "/Login",
+    element: <Login></Login>,
+  },
+  { path: "/Admin", element: <AdminPage /> },
+  {
     path: "/Edit/Blog/:id",
     element: <EditPage article={false} edit={true} />,
   },
@@ -45,6 +53,10 @@ const router = createBrowserRouter([
   {
     path: "Add/Article",
     element: <EditPage article={true} edit={false}></EditPage>,
+  },
+  {
+    path: "/test",
+    element: <Test></Test>,
   },
 ]);
 

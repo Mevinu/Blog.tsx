@@ -1,67 +1,28 @@
-from flask import Flask, request, send_from_directory, jsonify, url_for
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, request, send_from_directory, jsonify, url_for, session, url_for, make_response
+from flask_session import Session #type:ignore
+from flask_bcrypt import Bcrypt #type:ignore
 from datetime import datetime
-from flask_cors import CORS #type:ignore
+from config import ApplicationConfig
+from flask_cors import CORS, cross_origin #type:ignore
 from werkzeug.utils import secure_filename
 import os
 import json
 import bleach #type:ignore
+from model import *
+
 
 app = Flask(__name__)
-CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI']= 'sqlite:///blog.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'uploads'
-db = SQLAlchemy(app)
+app.config.from_object(ApplicationConfig)
+
+bcrypt = Bcrypt(app)
+CORS(app, supports_credentials=True, origins=["http://localhost:5173"])  # Frontend React app's origin
+server_session = Session(app)
+db.init_app(app)
 
 
-class Users(db.Model):
-    __tablename__ = 'Users'
-    userID = db.Column(db.Integer, primary_key=True)
-    userName = db.Column(db.String(100))
-    userPassword = db.Column(db.String(250))
-    authors = db.relationship('Authors', backref='user_ref', lazy=True) 
 
-    def to_dict(self):
-        return {"userID":self.userId, "userName":self.userName, "userPassword":self.userPassword}
-
-class Blogs(db.Model):
-    __tablename__= "Blogs"
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(300))
-    summary = db.Column(db.String(1000))
-    content = db.Column(db.Text)
-    date = db.Column(db.DateTime)
-    authorID = db.Column(db.Integer, db.ForeignKey('Authors.authorID'), nullable=False)
-
-    def to_dict(self):
-        return {"id": self.id, "title":self.title, "summary": self.summary, "content": self.content, "date": self.date, "author": self.author.to_dict()}
-
-class Articles(db.Model):
-    __tablename__= "Articles"
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(300))
-    summary = db.Column(db.String(1000))
-    content = db.Column(db.Text)
-    date = db.Column(db.DateTime)
-    imageURL = db.Column(db.String(300))
-    authorID = db.Column(db.Integer, db.ForeignKey('Authors.authorID'), nullable=False)
-    
-
-
-    def to_dict(self):
-        return {"id": self.id, "title":self.title, "summary": self.summary, "content": self.content, "date": self.date, "author": self.author.to_dict(), "imageURL": self.imageURL}
-
-class Authors(db.Model):
-    __tablename__ = "Authors"
-    authorID = db.Column(db.Integer, primary_key=True)
-    userID = db.Column(db.Integer, db.ForeignKey('Users.userID'))
-    blogs = db.relationship('Blogs', backref='author', lazy=True)
-    articles = db.relationship('Articles', backref='author', lazy=True)
-    user = db.relationship("Users")
-
-    def to_dict(self):
-        return {"authorID":self.authorID, "userID":self.userID, "userName": self.user.userName}
+with app.app_context():
+    db.create_all()
 
 
 @app.route("/uploads/<filename>")
@@ -111,10 +72,88 @@ def allArticles():
     return jsonify([article.to_dict() for article in articles])
 
 
+
+
+@app.route("/fake")
+def fake():
+    session["user_id"] = "ec49cab990d34f628d64c3d0d6e45a78"
+    return jsonify(0), 200
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    username = data["username"]
+    password = data["password"]
+
+    user = Users.query.filter_by(userName=username).first()
+
+    if user is None:
+        return jsonify({"error": "Invalied username"}), 401
+
+    if not bcrypt.check_password_hash(user.userPassword, password):
+        return jsonify({"error": "Password incorrect"}), 401
+    
+    session["user_id"] = user.userID
+    
+    return jsonify(0), 200
+
+@app.route("/createuser", methods=["POST"])
+def createUser():
+    data = request.get_json()
+    
+    username = data["username"]
+    password = data["password"]
+
+    user_exists = Users.query.filter_by(userName=username).first() is not None
+
+    if user_exists:
+        return jsonify({"error": "User already exists"}), 409
+
+    hashed_password = bcrypt.generate_password_hash(password)
+    new_user = Users(userName=username, userPassword=hashed_password)
+    db.session.add(new_user)
+    db.session.commit()
+    session["user_id"] = new_user.userID
+
+    author = Authors(userID=new_user.userID)
+    db.session.add(author)
+    db.session.commit()
+    return jsonify("User created"), 200
+
+
+@app.route('/admin')
+def admin():
+    userID = session.get("user_id")
+    print(f"user id is {userID}")
+    if not userID:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    return jsonify({"status": "logged in"}), 200
+
+    '''
+    
+    authorID = Authors.query.filter_by(userID=userID).first().authorID
+    blogs = Blogs.query.filter_by(authorID=authorID).all()
+    articles = Articles.query.filter_by(authorID=authorID).all()
+    response_data = {
+        "blogs":[blog.to_dict() for blog in blogs],
+        "articles":[article.to_dict() for article in articles]
+    }
+    return jsonify(response_data)
+
+'''
+
+
 @app.route("/addblog", methods=["POST"])
 def addBlog():
+    userID = session.get("user_id")
+    if not userID:
+        return jsonify({"error": "Unauthorized"}), 401
+    
     data = json.loads(request.form.get('json'))
-    blog = Blogs(title=bleach.clean(data["title"]), summary=bleach.clean(data["summary"]), content=cleanContent(data["content"]), authorID = data["author"], date=datetime.today())
+    author = Authors.query.filter_by(userID=userID).first();
+    blog = Blogs(title=bleach.clean(data["title"]), summary=bleach.clean(data["summary"]), content=cleanContent(data["content"]), authorID = author.authorID, date=datetime.today())
     db.session.add(blog)
     db.session.commit()
 
@@ -130,13 +169,19 @@ def allowed_file(filename):
 
 @app.route("/addarticle", methods=["POST"])
 def addArticle():
+    userID = session.get("user_id")
+    if not userID:
+        return jsonify({"error": "Unauthorized"}), 401
+
+
     data = json.loads(request.form.get('json'))
     image = request.files.get("image")
+    author = Authors.query.filter_by(userID=userID).first();
     filename = None
     if image and allowed_file(image.filename):
         filename = secure_filename(image.filename)
         image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        article = Articles(title=bleach.clean(data["title"]), summary=bleach.clean(data["summary"]), content=cleanContent(data["content"]), authorID = data["author"], date=datetime.today(), imageURL=f"http://127.0.0.1:5000{url_for('uploads', filename=filename)}")
+        article = Articles(title=bleach.clean(data["title"]), summary=bleach.clean(data["summary"]), content=cleanContent(data["content"]), authorID = author.authorID, date=datetime.today(), imageURL=f"http://127.0.0.1:5000{url_for('uploads', filename=filename)}")
         db.session.add(article)
         db.session.commit()
         return jsonify(1), 200
@@ -146,14 +191,29 @@ def addArticle():
 
 @app.route("/editblog", methods=["POST"])
 def editBlog():
-    data = json.loads(request.form.get('json'))
+    userID = session.get("user_id")
+    if not userID:
+        return jsonify({"error": "Unauthorized"}), 401
+
     blog = Blogs.query.get(request.args.get("postid"))
+    authorID = Authors.query.filter_by(userID=userID)
+    if blog.authorID != authorID:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    data = json.loads(request.form.get('json'))
+
     blog.title=bleach.clean(data["title"])
     blog.summary= bleach.clean(data["summary"])
     blog.content=cleanContent(data["content"])
     blog.date=datetime.today()
     db.session.commit()
     return jsonify(1),200
+
+
+
+
+
+
 
 @app.route("/editarticle", methods=["POST"])
 def editArticle():
@@ -172,6 +232,9 @@ def editArticle():
     
         db.session.commit()
     return jsonify(1),200
+
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -76,10 +76,11 @@ export function EditPage({ article, edit }: Props) {
           ? "http://127.0.0.1:5000/addarticle"
           : "http://127.0.0.1:5000/addblog";
       }
+
       const response = await fetch(url, {
         method: "POST",
-
         body: data,
+        credentials: "include",
       });
       const result = await response.json();
       if (result == 1 && edit == false) {
@@ -91,9 +92,11 @@ export function EditPage({ article, edit }: Props) {
       } else if (result == 3) {
         setMessage("Image type is invalied");
         setImageError(true);
+      } else if (result.error == "Unauthorized") {
+        setFetchError(true);
       }
     } catch (error) {
-      console.log(error);
+      setFetchError(true);
     }
   };
 
@@ -109,7 +112,6 @@ export function EditPage({ article, edit }: Props) {
         title: DOMPurify.sanitize(content.title ?? ""),
         summary: DOMPurify.sanitize(content.summary ?? ""),
         content: DOMPurify.sanitize(blogContent ?? ""),
-        author: 1,
       };
       if (content.imageURL) {
         jsonData.imageURL = DOMPurify.sanitize(content.imageURL);

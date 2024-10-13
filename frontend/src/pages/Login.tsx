@@ -11,7 +11,7 @@ function Login() {
     var content = { username: "mevinu", password: "vihansith" };
     const response = await httpClient.post("//127.0.0.1:5000/login", content);
 
-    const coookies = response.headers["Server"];
+    const coookies = response.headers["set-cookie"];
     console.log(response.data);
     console.log(coookies);
   };

@@ -15,7 +15,8 @@ app = Flask(__name__)
 app.config.from_object(ApplicationConfig)
 
 bcrypt = Bcrypt(app)
-CORS(app, supports_credentials=True, origins=["http://localhost:5173"])  # Frontend React app's origin
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": "http://localhost:5173"}}, methods=["POST", "GET"])
+
 server_session = Session(app)
 db.init_app(app)
 

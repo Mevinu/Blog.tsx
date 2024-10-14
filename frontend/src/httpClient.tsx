@@ -1,7 +1,5 @@
 import axios from "axios";
 
-const httpClient = axios.create({
-  withCredentials: true,
-});
+const httpClient = axios.create();
 
 export default httpClient;

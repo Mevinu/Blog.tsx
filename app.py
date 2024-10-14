@@ -3,7 +3,7 @@ from flask_session import Session #type:ignore
 from flask_bcrypt import Bcrypt #type:ignore
 from datetime import datetime
 from config import ApplicationConfig
-from flask_cors import CORS, cross_origin #type:ignore
+from flask_cors import CORS#type:ignore
 from werkzeug.utils import secure_filename
 import os
 import json
@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.config.from_object(ApplicationConfig)
 
 bcrypt = Bcrypt(app)
-CORS(app, supports_credentials=True, resources={r"/*": {"origins": "http://localhost:5173"}}, methods=["POST", "GET"])
+CORS(app, supports_credentials=True, origins=["http://localhost:3000"], methods=["POST", "GET"])
 
 server_session = Session(app)
 db.init_app(app)
@@ -74,13 +74,6 @@ def allArticles():
 
 
 
-
-@app.route("/fake")
-def fake():
-    session["user_id"] = "ec49cab990d34f628d64c3d0d6e45a78"
-    return jsonify(0), 200
-
-
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -97,7 +90,7 @@ def login():
     
     session["user_id"] = user.userID
     
-    return jsonify(0), 200
+    return jsonify({"status":"logged in"}), 200
 
 @app.route("/createuser", methods=["POST"])
 def createUser():
@@ -125,26 +118,19 @@ def createUser():
 
 @app.route('/admin')
 def admin():
-    userID = session.get("user_id")
-    print(f"user id is {userID}")
+    userID  = session.get("user_id")
+    author = Authors.query.filter_by(userID=userID).first()
     if not userID:
         return jsonify({"error": "Unauthorized"}), 401
     
-    return jsonify({"status": "logged in"}), 200
+    blogs = Blogs.query.filter_by(authorID=author.authorID).all()
+    articles = Articles.query.filter_by(authorID=author.authorID).all()
 
-    '''
-    
-    authorID = Authors.query.filter_by(userID=userID).first().authorID
-    blogs = Blogs.query.filter_by(authorID=authorID).all()
-    articles = Articles.query.filter_by(authorID=authorID).all()
     response_data = {
         "blogs":[blog.to_dict() for blog in blogs],
         "articles":[article.to_dict() for article in articles]
     }
-    return jsonify(response_data)
-
-'''
-
+    return jsonify(response_data), 200
 
 @app.route("/addblog", methods=["POST"])
 def addBlog():
@@ -209,6 +195,8 @@ def editBlog():
     blog.date=datetime.today()
     db.session.commit()
     return jsonify(1),200
+
+
 
 
 

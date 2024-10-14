@@ -11,8 +11,8 @@ export function AdminPage() {
 
   const fetchData = async () => {
     try {
-      const respose = await httpClient.get("//127.0.0.1:5000/admin");
-      const data = await respose.data.json();
+      const respose = await httpClient.get("/api/admin");
+      const data = await respose.data;
       if (data.error) {
         setFetchError(true);
       } else {
@@ -21,7 +21,7 @@ export function AdminPage() {
         setFetchError(false);
       }
     } catch (error) {
-      setFetchError(true);
+      console.log(error);
     }
   };
 

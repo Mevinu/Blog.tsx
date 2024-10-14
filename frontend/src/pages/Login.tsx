@@ -1,19 +1,20 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import httpClient from "../httpClient";
+import { useNavigate } from "react-router-dom";
 
-function Login() {
-  const [username, setUserName] = useState("");
+export function Login() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
-  const onSubmit = async () => {
-    var content = { username: "mevinu", password: "vihansith" };
-    const response = await httpClient.post("//127.0.0.1:5000/login", content);
-
-    const coookies = response.headers["set-cookie"];
-    console.log(response.data);
-    console.log(coookies);
+  const login = async () => {
+    const response = await httpClient.post("/api/login", {
+      username: username,
+      password: password,
+    });
+    const data = await response.data;
+    if (data.status == "logged in") {
+      navigate("/Admin");
+    }
   };
 
   return (
@@ -21,38 +22,22 @@ function Login() {
       <input
         type="text"
         name="username"
-        id="username"
-        onChange={(element) => {
-          setUserName(element.target.value);
+        onChange={(e) => {
+          setUsername(e.target.value);
         }}
-      />
+      ></input>
       <br />
       <input
         type="text"
-        name="password"
-        id="password"
-        onChange={(element) => {
-          setPassword(element.target.value);
+        name="username"
+        onChange={(e) => {
+          setPassword(e.target.value);
         }}
-      />
+      ></input>
       <br />
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          onSubmit();
-        }}
-      >
-        Login
-      </button>
-      <button
-        onClick={(e) => {
-          navigate("/test");
-        }}
-      >
+      <button type="button" onClick={login}>
         Login
       </button>
     </>
   );
 }
-
-export default Login;

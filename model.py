@@ -6,16 +6,17 @@ db= SQLAlchemy()
 def get_uuid():
     return uuid4().hex
 
-
 class Users(db.Model):
     __tablename__ = 'Users'
-    userID = db.Column(db.String(32), primary_key=True, unique=True, default=get_uuid())
+    userID = db.Column(db.String(32), primary_key=True, unique=True, default=get_uuid)
     userName = db.Column(db.String(100), unique=True)
     userPassword = db.Column(db.Text)
+    su = db.Column(db.Boolean)
     authors = db.relationship('Authors', backref='user_ref', lazy=True) 
 
+
     def to_dict(self):
-        return {"userID":self.userId, "userName":self.userName, "userPassword":self.userPassword}
+        return {"userID":self.userID, "userName":self.userName, "su": self.su}
 
 class Blogs(db.Model):
     __tablename__= "Blogs"

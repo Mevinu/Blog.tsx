@@ -1,4 +1,4 @@
-import { Blogs } from "../pages/Home";
+import { Blogs } from "./Props";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 

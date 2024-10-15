@@ -211,7 +211,7 @@ color:white;
     flex-grow: 2;
     justify-content: end;
 }
-.side-bar input[type="text"], .side-bar textarea{
+input[type="text"], .side-bar textarea, input[type="password"]{
     outline: none;
     resize: none;
     border:solid 1px black;
@@ -301,6 +301,11 @@ color:white;
 .warning{
     color: red;
     font-size: 10px;
+}
+.checkbox{
+    border: solid 1px;
+    width: 20px;
+    height: 20px;
 }
 
 

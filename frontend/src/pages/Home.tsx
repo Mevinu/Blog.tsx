@@ -1,30 +1,7 @@
 import { Article } from "../components/Article";
 import { Blog } from "../components/Blog";
 import { Link } from "react-router-dom";
-
-export interface Author {
-  authorID: number;
-  userID: number;
-  userName: string;
-}
-
-export interface Blogs {
-  author: Author;
-  content: string;
-  id: number;
-  date: string;
-  summary: string;
-  title: string;
-}
-export interface Articles {
-  id: number;
-  title: string;
-  summary: string;
-  date: string;
-  content: string;
-  author: Author;
-  imageURL: string;
-}
+import { Articles, Blogs } from "../components/Props";
 
 interface Props {
   blogs: Blogs[];

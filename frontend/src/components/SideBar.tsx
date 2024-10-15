@@ -1,19 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
-export interface Values {
-  title: string;
-  summary: string;
-  image?: File;
-  imageURL?: string;
-  content?: string;
-  author?: string;
-}
+import { Values } from "./Props";
 
 interface Props {
   preDefValues?: Values;
   article?: boolean;
-
   titleError?: boolean;
   contentError?: boolean;
   summaryError?: boolean;
@@ -34,7 +25,6 @@ export function SideBar({
   useEffect(() => {
     if (preDefValues) {
       setValues(preDefValues);
-      console.log(preDefValues.imageURL);
     }
   }, [preDefValues]);
 

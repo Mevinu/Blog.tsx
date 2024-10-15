@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { SideBar } from "../components/SideBar";
 import DOMPurify from "dompurify";
-import { Values } from "../components/SideBar";
+import { Values } from "../components/Props";
 import { useParams } from "react-router-dom";
 import { TextEditor } from "../components/TextEditor";
 import { MessageBox } from "../components/MessageBox";
+import httpClient from "../httpClient";
 
 interface Props {
   article: boolean;
@@ -17,6 +18,7 @@ export function EditPage({ article, edit }: Props) {
   const postID = id ? parseInt(id, 10) : null;
   const [blogContent, setBlogContent] = useState("");
   const [loadingContent, setLoadingContent] = useState(false);
+  const [logged, setLogged] = useState(false);
 
   const [message, setMessage] = useState("");
 
@@ -36,7 +38,23 @@ export function EditPage({ article, edit }: Props) {
   const [summaryError, setSummaryError] = useState(false);
   const [contentError, setContentError] = useState(false);
 
+  const checkUser = async () => {
+    await httpClient
+      .get("/api/checkuser")
+      .then(function (response) {
+        if (response.status == 200) {
+          setLogged(true);
+        }
+      })
+      .catch(function (error) {
+        if (error.status == 401) {
+          setLogged(false);
+        }
+      });
+  };
+
   useEffect(() => {
+    checkUser();
     if (edit) {
       fetchData();
     } else {
@@ -45,59 +63,51 @@ export function EditPage({ article, edit }: Props) {
   }, [edit]);
 
   const fetchData = async () => {
-    try {
-      const response = await fetch(
-        article
-          ? "http://127.0.0.1:5000/article/" + postID
-          : "http://127.0.0.1:5000/blog/" + postID
-      );
-      const data = await response.json();
-      if (data == 0) {
-        setFetchError(true);
-      } else {
-        setValues(data);
-        setLoadingContent(true);
-        setFetchError(false);
-      }
-    } catch (err) {
-      setFetchError(true);
-    }
+    await httpClient
+      .get(article ? `/api/getarticle/${postID}` : `/api/getblog/${postID}`)
+      .then(function (response) {
+        if (response.data) {
+          setValues(response.data);
+          setLoadingContent(true);
+          setFetchError(false);
+        }
+      })
+      .catch(function (error) {
+        if (error.status == 401 || error.status == 404) {
+          setFetchError(true);
+        }
+      });
   };
 
   const sendData = async (data: FormData) => {
-    try {
-      var url = "";
-      if (edit) {
-        url = article
-          ? "http://127.0.0.1:5000/editarticle?postid=" + postID
-          : "http://127.0.0.1:5000/editblog?postid=" + postID;
-      } else {
-        url = article
-          ? "http://127.0.0.1:5000/addarticle"
-          : "http://127.0.0.1:5000/addblog";
-      }
-
-      const response = await fetch(url, {
-        method: "POST",
-        body: data,
-        credentials: "include",
+    await httpClient
+      .post(
+        edit
+          ? article
+            ? `/api/editarticle?postid=${postID}`
+            : `/api/editblog?postid=${postID}`
+          : article
+          ? "/api/addarticle"
+          : "/api/addblog",
+        data
+      )
+      .then(function (response) {
+        if (response.status == 200 && edit) {
+          setMessage("Post Updated");
+          setPostUpt(true);
+        } else if (response.status == 200 && edit == false) {
+          setMessage("Post Created");
+          setPostSucc(true);
+        }
+      })
+      .catch(function (error) {
+        if (error.status == 406) {
+          setMessage("Image type is invalied");
+          setImageError(true);
+        } else if (error.status == 401 || error.status == 404) {
+          setFetchError(true);
+        }
       });
-      const result = await response.json();
-      if (result == 1 && edit == false) {
-        setMessage("Post Created");
-        setPostSucc(true);
-      } else if (result == 1 && edit) {
-        setMessage("Post Updated");
-        setPostUpt(false);
-      } else if (result == 3) {
-        setMessage("Image type is invalied");
-        setImageError(true);
-      } else if (result.error == "Unauthorized") {
-        setFetchError(true);
-      }
-    } catch (error) {
-      setFetchError(true);
-    }
   };
 
   const handleSubmit = (content: Values) => {
@@ -147,32 +157,38 @@ export function EditPage({ article, edit }: Props) {
   }
 
   return (
-    <section className="admin-container flex-container flex-gap30">
-      <SideBar
-        titleError={titleError}
-        summaryError={summaryError}
-        onSubmit={handleSubmit}
-        preDefValues={values ?? undefined}
-        article={article}
-      />
-      {loadingContent ? (
-        <TextEditor
-          warning={contentError}
-          onChange={setBlogContent}
-          content={values?.content}
-        ></TextEditor>
-      ) : null}
-      {postSucc || postUpt || imageError ? (
-        <MessageBox
-          message={message}
-          buttonMessage="Close"
-          onClick={() => {
-            setPostSucc(false);
-            setPostUpt(false);
-            setImageError(false);
-          }}
-        ></MessageBox>
-      ) : null}
-    </section>
+    <>
+      {logged ? (
+        <section className="admin-container flex-container flex-gap30">
+          <SideBar
+            titleError={titleError}
+            summaryError={summaryError}
+            onSubmit={handleSubmit}
+            preDefValues={values ?? undefined}
+            article={article}
+          />
+          {loadingContent ? (
+            <TextEditor
+              warning={contentError}
+              onChange={setBlogContent}
+              content={values?.content}
+            ></TextEditor>
+          ) : null}
+          {postSucc || postUpt || imageError ? (
+            <MessageBox
+              message={message}
+              buttonMessage="Close"
+              onClick={() => {
+                setPostSucc(false);
+                setPostUpt(false);
+                setImageError(false);
+              }}
+            ></MessageBox>
+          ) : null}
+        </section>
+      ) : (
+        <h1>Unauthorized</h1>
+      )}
+    </>
   );
 }

@@ -10,6 +10,7 @@ import { Post } from "./pages/Post.tsx";
 import { EditPage } from "./pages/EditPage.tsx";
 import { AdminPage } from "./pages/AdminPage.tsx";
 import { Login } from "./pages/Login.tsx";
+import { SignUp } from "./pages/SignUp.tsx";
 
 const router = createBrowserRouter([
   {
@@ -52,6 +53,10 @@ const router = createBrowserRouter([
   {
     path: "/Login",
     element: <Login></Login>,
+  },
+  {
+    path: "/Createuser",
+    element: <SignUp></SignUp>,
   },
 ]);
 

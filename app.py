@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.config.from_object(ApplicationConfig)
 
 bcrypt = Bcrypt(app)
-CORS(app, supports_credentials=True, origins=["http://localhost:3000"], methods=["POST", "GET"])
+CORS(app, supports_credentials=True)
 
 server_session = Session(app)
 db.init_app(app)
@@ -95,9 +95,15 @@ def login():
 @app.route("/createuser", methods=["POST"])
 def createUser():
     data = request.get_json()
+    userID = Users.query.filter_by(userID=session.get("user_id")).first().su
     
+    if not userID:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+
     username = data["username"]
     password = data["password"]
+    su = data["su"]
 
     user_exists = Users.query.filter_by(userName=username).first() is not None
 
@@ -105,7 +111,7 @@ def createUser():
         return jsonify({"error": "User already exists"}), 409
 
     hashed_password = bcrypt.generate_password_hash(password)
-    new_user = Users(userName=username, userPassword=hashed_password)
+    new_user = Users(userName=username, userPassword=hashed_password, su=su)
     db.session.add(new_user)
     db.session.commit()
     session["user_id"] = new_user.userID
@@ -116,21 +122,80 @@ def createUser():
     return jsonify("User created"), 200
 
 
+@app.route("/logout")
+def logout():
+    session.pop("user_id")
+    return jsonify(1), 200
+
+@app.route("/checkuser")
+def checkUser():
+    userID = session.get("user_id")
+    if not userID:
+        return jsonify({"error": "unauthorized"}), 401
+    
+    suUser = Users.query.filter_by(userID=userID).first().su
+    if suUser:
+        return jsonify({"su": True}), 200
+
+    return jsonify({"status":"authorized"}), 200
+
 @app.route('/admin')
 def admin():
     userID  = session.get("user_id")
-    author = Authors.query.filter_by(userID=userID).first()
-    if not userID:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-    blogs = Blogs.query.filter_by(authorID=author.authorID).all()
-    articles = Articles.query.filter_by(authorID=author.authorID).all()
+    try:
+        author = Authors.query.filter_by(userID=userID).first()
+        sessionuser = Users.query.filter_by(userID=userID).first()
+        if not userID:
+            return jsonify({"error": "Unauthorized"}), 401
+        
+        blogs = Blogs.query.filter_by(authorID=author.authorID).all()
+        articles = Articles.query.filter_by(authorID=author.authorID).all()
+        users = Users.query.all()
 
-    response_data = {
-        "blogs":[blog.to_dict() for blog in blogs],
-        "articles":[article.to_dict() for article in articles]
-    }
-    return jsonify(response_data), 200
+        if sessionuser.su:
+            response_data = {
+                "blogs":[blog.to_dict() for blog in blogs],
+                "articles":[article.to_dict() for article in articles],
+                "users":[user.to_dict() for user in users]
+            }
+        else:
+            response_data = {
+                "blogs":[blog.to_dict() for blog in blogs],
+                "articles":[article.to_dict() for article in articles]
+            }
+        return jsonify(response_data), 200
+    except:
+        return jsonify(0), 200
+
+
+@app.route("/getblog/<int:blog_id>")
+def getBlogPost(blog_id):
+    userID = session.get("user_id")
+    authorID = Authors.query.filter_by(userID=userID).first().authorID
+    try:
+        blog = Blogs.query.get(blog_id)
+        if blog.authorID == authorID:
+            return jsonify(blog.to_dict()),200
+        else:
+            return jsonify(0),401
+    except:
+        return jsonify(0),404
+
+
+@app.route("/getarticle/<int:article_id>")
+def getArticlePost(article_id):
+    userID = session.get("user_id")
+    authorID = Authors.query.filter_by(userID=userID).first().authorID
+    try:
+        article = Articles.query.get(article_id)
+        if article.authorID == authorID:
+            return jsonify(article.to_dict()),200
+        else:
+            return jsonify(0),401
+    except:
+        return jsonify(0),404
+
+
 
 @app.route("/addblog", methods=["POST"])
 def addBlog():
@@ -143,7 +208,6 @@ def addBlog():
     blog = Blogs(title=bleach.clean(data["title"]), summary=bleach.clean(data["summary"]), content=cleanContent(data["content"]), authorID = author.authorID, date=datetime.today())
     db.session.add(blog)
     db.session.commit()
-
     return jsonify(1), 200
 
 
@@ -151,7 +215,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 
 @app.route("/addarticle", methods=["POST"])
@@ -173,7 +236,7 @@ def addArticle():
         db.session.commit()
         return jsonify(1), 200
     else:
-        return jsonify(3), 200
+        return jsonify(1), 406 
     
 
 @app.route("/editblog", methods=["POST"])
@@ -183,7 +246,9 @@ def editBlog():
         return jsonify({"error": "Unauthorized"}), 401
 
     blog = Blogs.query.get(request.args.get("postid"))
-    authorID = Authors.query.filter_by(userID=userID)
+    authorID = Authors.query.filter_by(userID=userID).first().authorID
+
+
     if blog.authorID != authorID:
         return jsonify({"error": "Unauthorized"}), 401
     
@@ -195,13 +260,6 @@ def editBlog():
     blog.date=datetime.today()
     db.session.commit()
     return jsonify(1),200
-
-
-
-
-
-
-
 
 
 @app.route("/editarticle", methods=["POST"])
@@ -224,6 +282,43 @@ def editArticle():
 
 
 
+@app.route("/deleteblog", methods=['DELETE'])
+def deleteBlog():
+    userID = session.get("user_id")
+    postID = request.args.get("postid")
+    if not userID:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    try:
+        blog = Blogs.query.get(postID)
+        authorID = Authors.query.filter_by(userID=userID).first().authorID
+        if blog.authorID == authorID:
+            db.session.delete(blog)
+            db.session.commit()
+            return jsonify({"status":"Post deleted"}), 200
+        else:
+            return jsonify({"error": "Unauthorized"}), 401
+    except:
+        return jsonify({"error":"Invalied post number"}), 404
+    
+@app.route("/deletearticle", methods=['DELETE'])
+def deleteArticle():
+    userID = session.get("user_id")
+    postID = request.args.get("postid")
+    if not userID:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    try:
+        article = Articles.query.get(postID)
+        authorID = Authors.query.filter_by(userID=userID).first().authorID
+        if article.authorID == authorID:
+            db.session.delete(article)
+            db.session.commit()
+            return jsonify({"status":"Post deleted"}), 200
+        else:
+            return jsonify({"error": "Unauthorized"}), 401
+    except:
+        return jsonify({"error":"Invalied post number"}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { Blogs } from "./Home";
+import { Blogs } from "../components/Props";
 import { HomeNav } from "../components/HomeNav";
 import { format } from "date-fns";
 import "quill/dist/quill.core.css";

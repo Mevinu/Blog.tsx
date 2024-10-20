@@ -9,7 +9,7 @@ import os
 import json
 import bleach #type:ignore
 from model import *
-
+from uuid import uuid4
 
 app = Flask(__name__)
 app.config.from_object(ApplicationConfig)
@@ -148,15 +148,14 @@ def admin():
         if not userID:
             return jsonify({"error": "Unauthorized"}), 401
         
-        blogs = Blogs.query.filter_by(authorID=author.authorID).all()
-        articles = Articles.query.filter_by(authorID=author.authorID).all()
-        users = Users.query.all()
-
+        blogs = Blogs.query.filter_by(authorID=author.authorID).order_by(Blogs.date.desc()).all()
+        articles = Articles.query.filter_by(authorID=author.authorID).order_by(Articles.date.desc()).all()
+ 
         if sessionuser.su:
             response_data = {
-                "blogs":[blog.to_dict() for blog in blogs],
-                "articles":[article.to_dict() for article in articles],
-                "users":[user.to_dict() for user in users]
+                "blogs":[blog.to_dict() for blog in Blogs.query.order_by(Blogs.date.desc()).all()],
+                "articles":[article.to_dict() for article in Articles.query.order_by(Articles.date.desc()).all()],
+                "users":[user.to_dict() for user in Users.query.all()]
             }
         else:
             response_data = {
@@ -166,15 +165,42 @@ def admin():
         return jsonify(response_data), 200
     except:
         return jsonify(0), 200
+    
 
+@app.route("/deleteuser", methods=["DELETE"])
+def deleteUser():
+    userID = session.get("user_id")
+    if not userID:
+        return jsonify({"error":"unauthorized"}), 401
+    
+    requestUser = Users.query.filter_by(userID=userID).first()
+    if requestUser.su == True:
+        deleteUserID = request.args.get("userid")
+        deleteUserAuthorID = Authors.query.filter_by(userID=deleteUserID).first().authorID
+        requestUserAuthorID = Authors.query.filter_by(userID=userID).first().authorID
+        deleteUserBlogs = Blogs.query.filter_by(authorID=deleteUserAuthorID).all()
+        deleteUserArticles = Articles.query.filter_by(authorID=deleteUserAuthorID).all()
+
+        for blog in deleteUserBlogs:
+            blog.authorID = requestUserAuthorID
+        for article in deleteUserArticles:
+            article.authorID = requestUserAuthorID
+        
+        db.session.delete(Users.query.filter_by(userID=deleteUserID).first())
+        db.session.commit()
+
+        return jsonify({"status":"data updated"}), 200
+
+    return jsonify({"error":"unauthorized"}), 401 
 
 @app.route("/getblog/<int:blog_id>")
 def getBlogPost(blog_id):
     userID = session.get("user_id")
-    authorID = Authors.query.filter_by(userID=userID).first().authorID
     try:
+        authorID = Authors.query.filter_by(userID=userID).first().authorID
         blog = Blogs.query.get(blog_id)
-        if blog.authorID == authorID:
+        userSU = Users.query.filter_by(userID=userID).first().su
+        if blog.authorID == authorID or userSU:
             return jsonify(blog.to_dict()),200
         else:
             return jsonify(0),401
@@ -185,10 +211,11 @@ def getBlogPost(blog_id):
 @app.route("/getarticle/<int:article_id>")
 def getArticlePost(article_id):
     userID = session.get("user_id")
-    authorID = Authors.query.filter_by(userID=userID).first().authorID
     try:
+        authorID = Authors.query.filter_by(userID=userID).first().authorID
         article = Articles.query.get(article_id)
-        if article.authorID == authorID:
+        userSU = Users.query.filter_by(userID=userID).first().su
+        if article.authorID == authorID or userSU:
             return jsonify(article.to_dict()),200
         else:
             return jsonify(0),401
@@ -230,8 +257,11 @@ def addArticle():
     filename = None
     if image and allowed_file(image.filename):
         filename = secure_filename(image.filename)
-        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        article = Articles(title=bleach.clean(data["title"]), summary=bleach.clean(data["summary"]), content=cleanContent(data["content"]), authorID = author.authorID, date=datetime.today(), imageURL=f"http://127.0.0.1:5000{url_for('uploads', filename=filename)}")
+        file_extension = os.path.splitext(filename)[1]
+        unique_filename = f"{uuid4()}{file_extension}"
+
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+        article = Articles(title=bleach.clean(data["title"]), summary=bleach.clean(data["summary"]), content=cleanContent(data["content"]), authorID = author.authorID, date=datetime.today(), imageURL=f"http://127.0.0.1:5000{url_for('uploads', filename=unique_filename)}")
         db.session.add(article)
         db.session.commit()
         return jsonify(1), 200
@@ -247,14 +277,16 @@ def editBlog():
 
     blog = Blogs.query.get(request.args.get("postid"))
     authorID = Authors.query.filter_by(userID=userID).first().authorID
+    userSU = Users.query.filter_by(userID=userID).first().su
 
 
-    if blog.authorID != authorID:
+    if blog.authorID != authorID and userSU == False:
         return jsonify({"error": "Unauthorized"}), 401
     
     data = json.loads(request.form.get('json'))
 
     blog.title=bleach.clean(data["title"])
+    blog.authorID = authorID
     blog.summary= bleach.clean(data["summary"])
     blog.content=cleanContent(data["content"])
     blog.date=datetime.today()
@@ -264,17 +296,33 @@ def editBlog():
 
 @app.route("/editarticle", methods=["POST"])
 def editArticle():
+    userID = session.get("user_id")
+
+    if not userID:
+        return jsonify({"error":"unauthorized"}), 401
+    
     data = json.loads(request.form.get('json'))
     image = request.files.get("image")
     filename = None
     if image and allowed_file(image.filename):
         filename = secure_filename(image.filename)
-        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        file_extension = os.path.splitext(filename)[1]
+        unique_filename = f"{uuid4()}{file_extension}"
+
+        image.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
         article = Articles.query.get(request.args.get("postid"))
+        authorID = Authors.query.filter_by(userID=userID).first().authorID
+        userSU = Users.query.filter_by(userID=userID).first().su 
+
+        if article.authorID != authorID and userSU == False:
+            return jsonify({"error": "Unauthorized"}), 401
+
+
         article.title=bleach.clean(data["title"])
         article.summary= bleach.clean(data["summary"])
+        article.authorID = authorID
         article.content=cleanContent(data["content"])
-        article.imageURL="http://127.0.0.1:5000"+url_for('uploads', filename=filename)
+        article.imageURL="http://127.0.0.1:5000"+url_for('uploads', filename=unique_filename)
         article.date=datetime.today()
     
         db.session.commit()

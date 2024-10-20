@@ -42,7 +42,7 @@ export function SideBar({
 
   return (
     <div className="side-bar flex-container column-flex">
-      <Link to="/" className="back-btn editor-homebtn">
+      <Link to="/Admin" className="back-btn editor-homebtn">
         <i className="fa-solid fa-house"></i>
       </Link>
       <p>Title</p>

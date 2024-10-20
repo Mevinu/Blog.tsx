@@ -18,5 +18,9 @@ export function Delete({ url, submit }: Props) {
       });
   };
 
-  return <button onClick={onClick}>Delete</button>;
+  return (
+    <button onClick={onClick} className="nav-button warning-button">
+      Delete
+    </button>
+  );
 }

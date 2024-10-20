@@ -11,7 +11,7 @@ export function LogOut() {
   };
 
   return (
-    <button type="button" onClick={logout}>
+    <button type="button" className="nav-button" onClick={logout}>
       Log Out
     </button>
   );

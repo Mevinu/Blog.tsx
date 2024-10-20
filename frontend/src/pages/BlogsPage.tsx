@@ -17,7 +17,7 @@ export function BlogsPage() {
 
   return (
     <>
-      <HomeNav></HomeNav>
+      <HomeNav url="/"></HomeNav>
       <section className="hero-section flex-container centerd-flex">
         <h1>All Blogs</h1>
       </section>

@@ -31,7 +31,7 @@ export function Post({ blog }: Props) {
 
   return (
     <>
-      <HomeNav></HomeNav>
+      <HomeNav url="/"></HomeNav>
       {post ? (
         <>
           <section className="hero-section flex-container centerd-flex column-flex">

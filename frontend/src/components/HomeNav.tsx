@@ -1,9 +1,12 @@
 import { Link } from "react-router-dom";
 
-export function HomeNav() {
+interface Props {
+  url: string;
+}
+export function HomeNav({ url }: Props) {
   return (
     <nav>
-      <Link to="/" className="back-btn">
+      <Link to={url} className="back-btn">
         <i className="fa-solid fa-house"></i>
       </Link>
     </nav>

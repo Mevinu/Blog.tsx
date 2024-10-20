@@ -17,7 +17,7 @@ export function ArticlesPage() {
 
   return (
     <>
-      <HomeNav></HomeNav>
+      <HomeNav url="/"></HomeNav>
       <section className="hero-section flex-container centerd-flex">
         <h1>All Articles</h1>
       </section>

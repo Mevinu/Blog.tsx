@@ -67,6 +67,7 @@ section{
     padding-left: 40px;
 }
 .card-container{
+    width: 100%;
     height: max-content;
 
 }
@@ -307,8 +308,41 @@ input[type="text"], .side-bar textarea, input[type="password"]{
     width: 20px;
     height: 20px;
 }
+.admin-nav{
 
+    padding: 20px 0 0 0;
+}
+.admin-nav ul{
+    list-style: none;
+    z-index: 2;
+}
+.nav-button{
+    font-size: 15px;
+    border: none;
+    background-color: white;
+    cursor: pointer;
+    height: fit-content;
+    width: fit-content;
+}
+.nav-button:hover{
+    border: none;
+    color: rgb(40, 125, 252);
+}
+.warning-button:hover{
+    color:red;
+}
+.user-container{
+    padding:20px;
+    border-bottom: solid 1px;
+}
+.clickable-h2{
+    cursor: pointer;
+}
+.admin-card{
+    padding: 20px;
 
+    border-left: solid 1px;
+}
 @media only screen and (max-width:1000px) {
     .grid-container{
         grid-template-columns: 1fr;

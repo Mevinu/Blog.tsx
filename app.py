@@ -33,7 +33,7 @@ def uploads(filename):
 
 
 def cleanContent(content):
-    sanitized_content = bleach.clean(content, tags=['p', 'ol', 'a', 'li', 'span', 'br', 'strong', 'em', 'u', ], attributes={'a': ['href', 'rel'], 'li':['data-list', 'class']})
+    sanitized_content = bleach.clean(content, tags=['p', 'ol', 'a', 'li', 'span', 'br', 'strong', 'em', 'u', ], attributes={'a': ['href', 'rel'], 'li':['data-list', 'class'], 'span':['class', 'contenteditable']})
     return sanitized_content
 
 @app.route("/")

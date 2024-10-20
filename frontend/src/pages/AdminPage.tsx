@@ -143,9 +143,9 @@ export function AdminPage() {
                               url={`/api/deleteblog?postid=${blog.id}`}
                               submit={(success) => {
                                 if (success) {
-                                  alert(1);
+                                  setMessage("Action Comited");
                                 } else {
-                                  alert(0);
+                                  setMessage("Error Occured");
                                 }
                               }}
                             ></Delete>
